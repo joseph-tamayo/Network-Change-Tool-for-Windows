@@ -10,6 +10,7 @@ IPHostAdd := 10
 vUserIP := IPNetworkAdd1 . "." . IPNetworkAdd2 . "."  IPHostAdd . "." ;"10.10.10."
 vHostID := 133
 vHostDefault := 1
+;Adam was here
 
 ;GUI Structure
 ; Parameters just to make the window with buttons
