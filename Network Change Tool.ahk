@@ -1,12 +1,17 @@
 ﻿#Requires AutoHotkey v2.0
 #SingleInstance Force
 
-;Windows Address for Network
+; Windows Address for Network / Using Special Folder window, 
+;   this will be to open up properties and change the network addresses
 CSIDL_CONNECTIONS := 0x31
 connections := ComObject("Shell.Application").Namespace(CSIDL_CONNECTIONS)
 
+; Query WMI for network configurations that have active IP addresses
+wmi := ComObjGet("winmgmts:{impersonationLevel=impersonate}!\\.\root\cimv2")
+query := wmi.ExecQuery("Select * from Win32_NetworkAdapterConfiguration WHERE IPEnabled = True")
 
-;Variable Declarations - Global
+
+; Variable Declarations - Global
 IPSetup := Gui()
 vUserText := "User Host : "
 vUserIPText := "Your IP Address | "
@@ -31,8 +36,23 @@ loop connections.Items.Count
     i++
 }
 
+; Loop through the collection
+for adapter in query {
+    
+        MsgBox(adapter.Description)
+    
+}
+
+;test loop all ips -- native AutoHotKey Action to cycle through the System IP address
+;           this only throws out IP Addresses only, not needed for our application process
+;           more of a good to know
+;ips := SysGetIPAddresses()
+;for index, ip in ips
+;    MsgBox("Adapter IP " index ": " ip )
+
 ;GUI Structure -------------------------------------------------------------------------------------------------------------
 ; Parameters just to make the window with buttons
+; Creating a left side panel, for current setup
 IPSetup.Title := "IP Setup Tool"
 vTextUser := IPSetup.AddText("w500 Center", vUserIPText . vUserText . vHostID)
 UserIP := IPSetup.AddText("w500 h30 Center", vUserIP . vHostID)
@@ -41,6 +61,9 @@ UserIP.SetFont("s24")
 IPSetup.AddText(,"Number of connections: " . connections.Items.Count)
 dropChoice := IPSetup.AddDropDownList("w150 Choose1", networkCons)
 
+; Creating a right side panel, for target setup
+
+;Functionality of Network Change tool to the following
 ;Buttons to change IP Addresses to copy over
 IPSetup.Add("Button", buttonFormat . "x15", "Sphere Default `n10.10.10.1").OnEvent("Click", ChangeNetworkTen)
 IPSetup.Add("Button", buttonFormat . "x+10", "Planet Network Switch `n192.168.0.1").OnEvent("Click", ChangeNetworkZero) 
@@ -87,7 +110,10 @@ IPSetup.Show("w500 h375")
 ;Button Uses
 testButton(GuiBtnObj, Info)
 {
-        MsgBox(dropChoice.Text)
+        verbs := connections.Items.Item(0).Verbs
+        MsgBox(verbs.Count)
+        verbs.Item(verbs.Count - 1).DoIt() ;Click's on "Properties"
+        WinWait('ahk_class #32770')
 }
 
 
@@ -197,7 +223,7 @@ ChangeNetworkTwoHundred(GuiBtnObj, Info)
 !t::
 {
     ;Navigate to "Internett Protocol Version 4 (TCP/IP)", Tab to Properties, Press Enter and S for "Use Manual IP Address", Tab to first Inputbox
-    Send "i"
+    Send "i" 
     Send "{Tab}"
     Send "{Tab}"
     Send "{Enter}"
