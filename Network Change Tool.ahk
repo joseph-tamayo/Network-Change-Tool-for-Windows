@@ -1,4 +1,10 @@
 ﻿#Requires AutoHotkey v2.0
+#SingleInstance Force
+
+;Windows Address for Network
+CSIDL_CONNECTIONS := 0x31
+connections := ComObject("Shell.Application").Namespace(CSIDL_CONNECTIONS)
+
 
 ;Variable Declarations - Global
 IPSetup := Gui()
@@ -9,31 +15,40 @@ IPNetworkAdd2 := 10
 IPHostAdd := 10
 vUserIP := IPNetworkAdd1 . "." . IPNetworkAdd2 . "."  IPHostAdd . "." ;"10.10.10."
 vHostID := 133
-vHostDefault := 1   
-test := 2
+vHostDefault := 1
+networkCons := []
+numOfNetCons := connections.Items.Count
+i := 0
+buttonFormat := "w150 h50 "
 
-;comment
+;Define the network connections array on startup of app
+loop connections.Items.Count
+{
+    if i < numOfNetCons 
+    {
+        networkCons.Push(connections.Items.Item(i).Name)
+    }
+    i++
+}
 
-;This is a change
-
-;Adam was here
-
-;GUI Structure
+;GUI Structure -------------------------------------------------------------------------------------------------------------
 ; Parameters just to make the window with buttons
 IPSetup.Title := "IP Setup Tool"
 vTextUser := IPSetup.AddText("w500 Center", vUserIPText . vUserText . vHostID)
 UserIP := IPSetup.AddText("w500 h30 Center", vUserIP . vHostID)
 UserIP.SetFont("s24")
 ;UserID := IPSetup.AddText("w500 h30 Center", vUserText . vHostID)
-
+IPSetup.AddText(,"Number of connections: " . connections.Items.Count)
+dropChoice := IPSetup.AddDropDownList("w150 Choose1", networkCons)
 
 ;Buttons to change IP Addresses to copy over
-IPSetup.Add("Button", "w150 h50 x15", "Sphere Default `n10.10.10.1").OnEvent("Click", ChangeNetworkTen)
-IPSetup.Add("Button", "w150 h50 x+10", "Planet Network Switch `n192.168.0.1").OnEvent("Click", ChangeNetworkZero) 
-IPSetup.Add("Button", "w150 h50 x+10", "Waveshare/Dingtian Relay `n192.168.1.1").OnEvent("Click", ChangeNetworkOne)
-IPSetup.Add("Button", "w150 h50 xm x15", "Shelly Relays `n192.168.33.1").OnEvent("Click", ChangeNetworkThirtyThree)
-IPSetup.Add("Button", "w150 h50 x+10", "DJI Dock `n192.168.200.1").OnEvent("Click", ChangeNetworkTwoHundred)
-IPSetup.Add("Button", "w150 h50 x+10", "Peplink Router `n192.168.50.1").OnEvent("Click", ChangeNetworkFifty)
+IPSetup.Add("Button", buttonFormat . "x15", "Sphere Default `n10.10.10.1").OnEvent("Click", ChangeNetworkTen)
+IPSetup.Add("Button", buttonFormat . "x+10", "Planet Network Switch `n192.168.0.1").OnEvent("Click", ChangeNetworkZero) 
+IPSetup.Add("Button", buttonFormat . "x+10", "Waveshare/Dingtian Relay `n192.168.1.1").OnEvent("Click", ChangeNetworkOne)
+IPSetup.Add("Button", buttonFormat . "xm x15", "Shelly Relays `n192.168.33.1").OnEvent("Click", ChangeNetworkThirtyThree)
+IPSetup.Add("Button", buttonFormat . "x+10", "DJI Dock `n192.168.200.1").OnEvent("Click", ChangeNetworkTwoHundred)
+IPSetup.Add("Button", buttonFormat . "x+10", "Peplink Router `n192.168.50.1").OnEvent("Click", ChangeNetworkFifty)
+IPSetup.Add("Button", buttonFormat . "xm", "Test").OnEvent("Click", testButton)
 
 
 
@@ -53,11 +68,29 @@ vName.SetFont("s9")
 vSig2 := IPSetup.AddText("w480 y+5 Right", "Copyright Sphere Group 2026 ")
 vSig2.SetFont("s6")
 
+;-------------------------------------------------------------------------------------------------------------------------------
+
+
+;Note:
+;How to invoke 1'st (0) connection properties:
+;This will open the properties windows for the designated connection declared
+
+;verbs := connections.Items.Item(0).Verbs
+;verbs.Item(verbs.Count - 1).DoIt() ;Click's on "properties"
+;WinWait('ahk_class #32770') ;This is adding a wait on the prompt (not needed if building an autoscript to change network just a neat checkk)
+
+
 ;open gui
 IPSetup.Show("w500 h375")
 
 
 ;Button Uses
+testButton(GuiBtnObj, Info)
+{
+        MsgBox(dropChoice.Text)
+}
+
+
 ChangeUser(GuiBtnObj, Info)
 {
     vInput := InputBox("What IP ID would you like? (Please enter a number between 2 and 254)"
