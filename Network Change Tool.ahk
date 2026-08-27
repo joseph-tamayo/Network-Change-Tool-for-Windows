@@ -6,6 +6,12 @@ CSIDL_CONNECTIONS := 0x31
 connections := ComObject("Shell.Application").Namespace(CSIDL_CONNECTIONS)
 
 
+result := "Active Network Interfaces & IP Addresses:`n`n"
+wmi := ComObjGet("winmgmts:\\.\root\CIMV2")
+query := wmi.ExecQuery("SELECT NetConnectionID FROM Win32_NetworkAdapter WHERE NetConnectionID IS NOT NULL")
+
+
+
 ;Variable Declarations - Global
 IPSetup := Gui()
 vUserText := "User Host : "
@@ -30,6 +36,16 @@ loop connections.Items.Count
     }
     i++
 }
+
+    for adapter in query {
+        ;NetConnectionID is the friendly name in the wmi query
+        description := adapter.NetConnectionID 
+
+        result .= "Adapter: " description "`n"
+        i++
+    }
+
+MsgBox(result)
 
 ;GUI Structure -------------------------------------------------------------------------------------------------------------
 ; Parameters just to make the window with buttons
