@@ -6,9 +6,9 @@ CSIDL_CONNECTIONS := 0x31
 connections := ComObject("Shell.Application").Namespace(CSIDL_CONNECTIONS)
 
 
-result := "Active Network Interfaces & IP Addresses:`n`n"
-wmi := ComObjGet("winmgmts:\\.\root\CIMV2")
-query := wmi.ExecQuery("SELECT NetConnectionID FROM Win32_NetworkAdapter WHERE NetConnectionID IS NOT NULL")
+
+wmi := ComObjGet("winmgmts:{impersonationLevel=impersonate}!\\.\root\CIMV2")
+query := wmi.ExecQuery("SELECT * FROM Win32_NetworkAdapter WHERE NetConnectionID IS NOT NULL")
 
 
 
@@ -38,14 +38,23 @@ loop connections.Items.Count
 }
 
     for adapter in query {
+        result := "Active Network Interfaces & IP Addresses:`n`n"
+        description := ""
+
+        description .= adapter.NetConnectionID
         ;NetConnectionID is the friendly name in the wmi query
-        description := adapter.NetConnectionID 
+        for tag in adapter.Properties_ {
+            description .= tag.Name ": "
+            description .= tag.Value "`n"
+        }
+        ;description := adapter
 
         result .= "Adapter: " description "`n"
+        MsgBox(result)
         i++
     }
 
-MsgBox(result)
+
 
 ;GUI Structure -------------------------------------------------------------------------------------------------------------
 ; Parameters just to make the window with buttons
