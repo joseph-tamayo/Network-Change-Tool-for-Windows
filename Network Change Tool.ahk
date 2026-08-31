@@ -6,9 +6,11 @@
 CSIDL_CONNECTIONS := 0x31
 connections := ComObject("Shell.Application").Namespace(CSIDL_CONNECTIONS)
 
-; Query WMI for network configurations that have active IP addresses
-wmi := ComObjGet("winmgmts:{impersonationLevel=impersonate}!\\.\root\cimv2")
-query := wmi.ExecQuery("Select * from Win32_NetworkAdapterConfiguration WHERE IPEnabled = True")
+
+result := "Active Network Interfaces & IP Addresses:`n`n"
+wmi := ComObjGet("winmgmts:\\.\root\CIMV2")
+query := wmi.ExecQuery("SELECT NetConnectionID FROM Win32_NetworkAdapter WHERE NetConnectionID IS NOT NULL")
+
 
 
 ; Variable Declarations - Global
@@ -36,19 +38,15 @@ loop connections.Items.Count
     i++
 }
 
-; Loop through the collection
-for adapter in query {
-    
-        MsgBox(adapter.Description)
-    
-}
+    for adapter in query {
+        ;NetConnectionID is the friendly name in the wmi query
+        description := adapter.NetConnectionID 
 
-;test loop all ips -- native AutoHotKey Action to cycle through the System IP address
-;           this only throws out IP Addresses only, not needed for our application process
-;           more of a good to know
-;ips := SysGetIPAddresses()
-;for index, ip in ips
-;    MsgBox("Adapter IP " index ": " ip )
+        result .= "Adapter: " description "`n"
+        i++
+    }
+
+MsgBox(result)
 
 ;GUI Structure -------------------------------------------------------------------------------------------------------------
 ; Parameters just to make the window with buttons
